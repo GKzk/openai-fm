@@ -17,6 +17,7 @@ import { useBodyScrollable } from "@/hooks/useBodyScrollable";
 import { Button, ButtonLED } from "./ui/Button";
 import { appStore } from "@/lib/store";
 import BrowserNotSupported from "./ui/BrowserNotSupported";
+import RateLimitModal from "./ui/RateLimitModal";
 
 const EXPRESSIVE_VOICES = ["ash", "ballad", "coral", "sage", "verse"];
 
@@ -46,6 +47,8 @@ const Board = () => {
   const browserNotSupported = appStore.useState(
     () => !("serviceWorker" in navigator)
   );
+  const rateLimitOpen = appStore.useState((state) => state.rateLimitOpen);
+  const rateLimitStatus = appStore.useState((state) => state.rateLimitStatus);
 
   const handleRefreshLibrarySet = () => {
     const nextSet = getRandomLibrarySet();
@@ -85,6 +88,20 @@ const Board = () => {
         <BrowserNotSupported
           open={browserNotSupported}
           onOpenChange={() => {}}
+        />
+      )}
+      {rateLimitOpen && (
+        <RateLimitModal
+          open={rateLimitOpen}
+          onOpenChange={(open) => {
+            appStore.setState((draft) => {
+              draft.rateLimitOpen = open;
+              if (!open) {
+                draft.rateLimitStatus = null;
+              }
+            });
+          }}
+          status={rateLimitStatus}
         />
       )}
       <div className="flex flex-row">

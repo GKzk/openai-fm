@@ -18,6 +18,10 @@ self.addEventListener("fetch", (event) => {
     formData.append("prompt", url.searchParams.get("prompt"));
     formData.append("voice", url.searchParams.get("voice"));
     formData.append("vibe", url.searchParams.get("vibe"));
+    const intent = url.searchParams.get("intent");
+    if (intent) {
+      formData.append("intent", intent);
+    }
 
     url.search = "";
 

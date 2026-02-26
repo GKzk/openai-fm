@@ -1,4 +1,6 @@
 import { NextRequest, userAgent } from "next/server";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { RateLimitType } from "@/lib/rateLimitConfig";
 
 export const MAX_INPUT_LENGTH = 1000;
 export const MAX_PROMPT_LENGTH = 1000;
@@ -11,6 +13,9 @@ export async function GET(req: NextRequest) {
 
   const ua = userAgent(req);
   const response_format = ua.engine?.name === "Blink" ? "wav" : "mp3";
+  const intent = searchParams.get("intent");
+  const rateLimitType: RateLimitType =
+    intent === "download" ? "download" : "generation";
 
   // Get parameters from the query string
   let input = searchParams.get("input") || "";
@@ -29,6 +34,18 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const rateLimit = await checkRateLimit(req, rateLimitType);
+    if (!rateLimit.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          ...rateLimit,
+          type: rateLimitType,
+        },
+        { status: 429 }
+      );
+    }
+
     const apiResponse = await fetch("https://api.openai.com/v1/audio/speech", {
       method: "POST",
       headers: {
@@ -77,6 +94,9 @@ export async function POST(req: NextRequest) {
   let prompt = formData.get("prompt")?.toString() || "";
   const voice = formData.get("voice")?.toString() || "";
   const vibe = formData.get("vibe") || "audio";
+  const intent = formData.get("intent")?.toString() || "";
+  const rateLimitType: RateLimitType =
+    intent === "download" ? "download" : "generation";
 
   // Truncate input and prompt to max 1000 characters
   // Frontend handles this, but we'll do it here too
@@ -89,6 +109,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const rateLimit = await checkRateLimit(req, rateLimitType);
+    if (!rateLimit.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          ...rateLimit,
+          type: rateLimitType,
+        },
+        { status: 429 }
+      );
+    }
+
     const apiResponse = await fetch("https://api.openai.com/v1/audio/speech", {
       method: "POST",
       headers: {

@@ -3,6 +3,7 @@ import { Play } from "./ui/Icons";
 import { Button } from "./ui/Button";
 import { appStore } from "@/lib/store";
 import s from "./ui/Footer.module.css";
+import { checkRateLimit } from "@/lib/rateLimitClient";
 
 const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -73,6 +74,11 @@ export default function PlayButton() {
       return;
     }
 
+    const allowed = await checkRateLimit("generation");
+    if (!allowed) {
+      return;
+    }
+
     setAudioLoading(true);
     appStore.setState({ latestAudioUrl: null });
 
@@ -81,6 +87,7 @@ export default function PlayButton() {
       url.searchParams.append("input", input);
       url.searchParams.append("prompt", prompt);
       url.searchParams.append("voice", voice);
+      url.searchParams.append("intent", "generation");
       url.searchParams.append("generation", crypto.randomUUID());
       const audioUrl = url.toString();
       appStore.setState({ latestAudioUrl: audioUrl });

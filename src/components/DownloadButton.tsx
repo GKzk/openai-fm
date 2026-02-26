@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Download } from "./ui/Icons";
 import { Button } from "./ui/Button";
 import { appStore } from "@/lib/store";
+import {
+  consumeDownloadLimit,
+  handleRateLimitResponse,
+} from "@/lib/rateLimitClient";
 
 const PlayingWaveform = ({
   audioLoaded,
@@ -64,7 +68,7 @@ export default function DownloadButton() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         // update file name when updating the service worker to avoid cache issues
-        .register("/worker-444eae9e2e1bdd6edd8969f319655e70.js")
+        .register("/worker-8a3c2f0b1d4e5f6a7b8c9d0e1f2a3b4c.js")
         .catch((err) => console.error("SW registration failed", err));
     }
   }, []);
@@ -89,10 +93,19 @@ export default function DownloadButton() {
       form.append("input", input);
       form.append("prompt", prompt);
       form.append("voice", voice);
+      form.append("intent", "download");
       form.append("generation", crypto.randomUUID());
       form.append("vibe", vibe);
 
       const res = await fetch("/api/generate", { method: "POST", body: form });
+      if (await handleRateLimitResponse(res, "download")) {
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) {
+        setLoading(false);
+        return;
+      }
       const blob = await res.blob();
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -101,6 +114,11 @@ export default function DownloadButton() {
       link.click();
       document.body.removeChild(link);
       setLoading(false);
+      return;
+    }
+
+    const allowed = await consumeDownloadLimit();
+    if (!allowed) {
       return;
     }
 

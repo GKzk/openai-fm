@@ -6,6 +6,7 @@ import {
   getLibraryByPrompt,
   getRandomLibrarySet,
 } from "./library";
+import { RateLimitStatus } from "./rateLimitConfig";
 
 export interface AppState {
   voice: string;
@@ -16,6 +17,8 @@ export interface AppState {
   selectedEntry: LibraryEntry | null;
   librarySet: LibraryEntry[];
   latestAudioUrl: string | null;
+  rateLimitOpen: boolean;
+  rateLimitStatus: RateLimitStatus | null;
 }
 
 const INITIAL_STATE: AppState = {
@@ -27,6 +30,8 @@ const INITIAL_STATE: AppState = {
   selectedEntry: null,
   librarySet: [],
   latestAudioUrl: null,
+  rateLimitOpen: false,
+  rateLimitStatus: null,
 };
 
 class AppStore {
