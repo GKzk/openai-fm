@@ -1,4 +1,5 @@
 import { NextRequest, userAgent } from "next/server";
+const TTS_BASE_URL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
 
 export const MAX_INPUT_LENGTH = 1000;
 export const MAX_PROMPT_LENGTH = 1000;
@@ -29,14 +30,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const apiResponse = await fetch("https://api.openai.com/v1/audio/speech", {
+    const apiResponse = await fetch(`${TTS_BASE_URL}/audio/speech`, {
+
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini-tts",
+        model: "tts-1",
+
         input,
         response_format,
         voice,
@@ -89,14 +92,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const apiResponse = await fetch("https://api.openai.com/v1/audio/speech", {
+    const apiResponse = await fetch(`${TTS_BASE_URL}/audio/speech`, {
+
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini-tts",
+        model: "tts-1",
+
         input,
         response_format,
         voice,
